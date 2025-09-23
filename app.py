@@ -153,10 +153,10 @@ st.markdown('<div class="main-content">', unsafe_allow_html=True)
 # Carregar dados
 @st.cache_data
 def carregar_dados():
-    df_final = load_csv("df_final.csv")
+    gdf_final = load_csv("gdf_final.csv")
     df_trips = load_csv("df_trips.csv")
     distritos_final = load_shp("distritos_final.shp")
-    return df_final, df_trips, distritos_final
+    return gdf_final, df_trips, distritos_final
  
 df_final, df_trips, distritos_final = carregar_dados()
  
@@ -405,9 +405,39 @@ with abas[2]:
 st.markdown("<br>", unsafe_allow_html=True)
  
 
+
+# ----- SIMULAÇÃO DE EMISSÕES -----
+st.markdown("## Simulação de emissões evitadas")
  
+with st.expander("Clique para simular"):
+ 
+    media_evitar = df_eletricos["emissao_co2"].mean()
+ 
+    st.write(f"Em média, cada ônibus elétrico evita aproximadamente "
+             f"**{media_evitar:,.2f} (?) de CO₂** no período analisado.")
+ 
+    st.markdown("<br>", unsafe_allow_html=True)
+ 
+    #st.write("Digite a quantidade de novos ônibus elétricos para a simulação:")
+   
+    novos_onibus = st.number_input("Digite a quantidade de novos ônibus elétricos para a simulação:",
+                                    min_value=1,
+                                   format="%d")
+ 
+    emissao_adicional = novos_onibus * media_evitar
+ 
+    st.markdown("<br>", unsafe_allow_html=True)
+ 
+    st.success(f"Com mais **{novos_onibus} ônibus elétricos**, seriam evitados aproximadamente "
+               f"**{emissao_adicional:,.2f} (?) de CO₂** no mesmo período.")
+
+
+
 # ----- MAPA TRAJETOS -----
 st.markdown("## Mapa de trajeto dos ônibus")
+
+df_trips
+
 df_trips = df_trips[['coordinates', 'timestamps']]
 df_trips['coordinates'] = df_trips['coordinates'].apply(lambda x: eval(x))
 df_trips['timestamps'] = df_trips['timestamps'].apply(lambda x: eval(x))
