@@ -158,7 +158,7 @@ def carregar_dados():
     distritos_final = load_shp("distritos_final.shp")
     return gdf_final, df_trips, distritos_final
  
-df_final, df_trips, distritos_final = carregar_dados()
+gdf_final, df_trips, distritos_final = carregar_dados()
  
  
  
@@ -166,7 +166,7 @@ df_final, df_trips, distritos_final = carregar_dados()
 st.markdown("## Sobre os ônibus")
 
 
-df_unique = df_final.drop_duplicates(subset="id_onibus")
+df_unique = gdf_final.drop_duplicates(subset="id_onibus")
 
 
 # Tipo de ônibus
@@ -243,10 +243,10 @@ st.markdown("<br>", unsafe_allow_html=True)
  
 # ----- GRÁFICOS 2 -----
 st.markdown("## Sobre as emissões de CO₂")
-df_final["momento_inicial"] = pd.to_datetime(df_final["momento_inicial"])
-df_final["hora_min"] = df_final["momento_inicial"].dt.strftime("%H:%M")
-df_eletricos = df_final[df_final["is_eletrico"] == True]
-df_nao_eletricos = df_final[df_final["is_eletrico"] == False]
+gdf_final["momento_inicial"] = pd.to_datetime(gdf_final["momento_inicial"])
+gdf_final["hora_min"] = gdf_final["momento_inicial"].dt.strftime("%H:%M")
+df_eletricos = gdf_final[gdf_final["is_eletrico"] == True]
+df_nao_eletricos = gdf_final[gdf_final["is_eletrico"] == False]
  
 emissoes = df_nao_eletricos.groupby("hora_min")["emissao_co2"].sum().cumsum().sort_index().reset_index()
 emissoes.columns = ["Horário do dia", "Emissões de CO₂ (?)"]
@@ -411,32 +411,34 @@ st.markdown("## Simulação de emissões evitadas")
  
 with st.expander("Clique para simular"):
  
-    media_evitar = df_eletricos["emissao_co2"].mean()
+    media_evitada = df_eletricos["emissao_co2"].mean()
  
-    st.write(f"Em média, cada ônibus elétrico evita aproximadamente "
-             f"**{media_evitar:,.2f} (?) de CO₂** no período analisado.")
+    st.write(f"Em média, cada ônibus elétrico evita, aproximadamente, "
+             f"**{media_evitada:,.2f} (?) de CO₂**.")
  
     st.markdown("<br>", unsafe_allow_html=True)
  
-    #st.write("Digite a quantidade de novos ônibus elétricos para a simulação:")
+    st.write("Digite a quantidade de novos ônibus elétricos para a simulação:")
    
-    novos_onibus = st.number_input("Digite a quantidade de novos ônibus elétricos para a simulação:",
-                                    min_value=1,
+    novos_onibus = st.number_input("",
+                                   min_value=1,
                                    format="%d")
  
-    emissao_adicional = novos_onibus * media_evitar
+    emissao_adicional = novos_onibus * media_evitada
  
     st.markdown("<br>", unsafe_allow_html=True)
  
-    st.success(f"Com mais **{novos_onibus} ônibus elétricos**, seriam evitados aproximadamente "
-               f"**{emissao_adicional:,.2f} (?) de CO₂** no mesmo período.")
+    st.success(f"Com mais **{novos_onibus} ônibus elétricos**, serão evitados, aproximadamente, "
+               f"**{emissao_adicional:,.2f} (?) de CO₂**.")
+
+
+
+st.markdown("<br>", unsafe_allow_html=True)
 
 
 
 # ----- MAPA TRAJETOS -----
 st.markdown("## Mapa de trajeto dos ônibus")
-
-df_trips
 
 df_trips = df_trips[['coordinates', 'timestamps']]
 df_trips['coordinates'] = df_trips['coordinates'].apply(lambda x: eval(x))
