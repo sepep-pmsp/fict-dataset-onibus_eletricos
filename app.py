@@ -430,6 +430,26 @@ with st.expander("Clique para simular"):
  
     st.success(f"Com mais **{novos_onibus} ônibus elétricos**, serão evitados, aproximadamente, "
                f"**{emissao_adicional:,.2f} (?) de CO₂**.")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    st.write("Digite o período da simulação (em dias):")
+
+    dias = st.number_input("",
+                           min_value=1,
+                           value=30,
+                           format="%d")
+
+    df_proj = pd.DataFrame({
+        "Dias": range(1, dias + 1),
+        "Emissões de CO₂ (?)": [emissao_adicional * d for d in range(1, dias + 1)]
+    })
+
+    fig = px.line(df_proj, x="Dias", y="Emissões de CO₂ (?)",
+                  title=f"Projeção de emissões evitadas nos próximos {dias} dias",
+                  markers=True)
+    
+    st.plotly_chart(fig, use_container_width=True)
 
 
 
