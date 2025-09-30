@@ -449,6 +449,13 @@ with st.expander("Clique para simular"):
                   title=f"Projeção de emissões evitadas nos próximos {dias} dias",
                   markers=True)
     
+    fig.update_traces(line_color="#00cc96", hovertemplate="Dia: %{x} <br> Emissões: %{y:.5f} (?)<extra></extra>",
+                      hoverlabel=dict(font_color="black", bgcolor="white"))
+    
+    fig.update_layout(plot_bgcolor="white",
+                      xaxis=dict(title_font_color="black", tickfont_color="black"),
+                      yaxis=dict(title_font_color="black", tickfont_color="black"))
+    
     st.plotly_chart(fig, use_container_width=True)
 
 
