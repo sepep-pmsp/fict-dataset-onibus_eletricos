@@ -413,7 +413,7 @@ with st.expander("Clique para simular"):
  
     media_evitada = df_eletricos["emissao_co2"].mean()
  
-    st.write(f"Em média, cada ônibus elétrico evita, aproximadamente, "
+    st.write(f"Em média, cada ônibus elétrico evita, no dia, aproximadamente, "
              f"**{media_evitada:,.2f} (?) de CO₂**.")
  
     st.markdown("<br>", unsafe_allow_html=True)
@@ -428,7 +428,7 @@ with st.expander("Clique para simular"):
  
     st.markdown("<br>", unsafe_allow_html=True)
  
-    st.success(f"Com mais **{novos_onibus} ônibus elétricos**, serão evitados, aproximadamente, "
+    st.success(f"Com mais **{novos_onibus} ônibus elétricos**, serão evitados, no dia, aproximadamente, "
                f"**{emissao_adicional:,.2f} (?) de CO₂**.")
     
     st.markdown("<br>", unsafe_allow_html=True)
