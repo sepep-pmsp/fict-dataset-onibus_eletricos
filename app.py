@@ -467,9 +467,10 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ----- MAPA TRAJETOS -----
 st.markdown("## Mapa de trajeto dos ônibus")
 
-df_trips = df_trips[['coordinates', 'timestamps']]
+#df_trips = df_trips[['coordinates', 'timestamps']]
 df_trips['coordinates'] = df_trips['coordinates'].apply(lambda x: eval(x))
 df_trips['timestamps'] = df_trips['timestamps'].apply(lambda x: eval(x))
+df_trips["color"] = df_trips["is_eletrico"].apply(lambda x: [0, 255, 0] if x else [255, 0, 0])
  
 max_time = max(df_trips['timestamps'].apply(max))
 trail_length = 800
@@ -487,6 +488,7 @@ with col_center:
             get_path="coordinates",
             get_timestamps="timestamps",
             get_color=[255, 0, 0],
+            #get_color="color",
             opacity=0.8,
             width_min_pixels=5,
             rounded=True,
