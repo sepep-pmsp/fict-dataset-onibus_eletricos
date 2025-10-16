@@ -155,10 +155,10 @@ st.markdown('<div class="main-content">', unsafe_allow_html=True)
 def carregar_dados():
     gdf_final = load_csv("gdf_final.csv")
     df_trips = load_csv("df_trips.csv")
-    gdf_overlay = load_shp("gdf_overlay.shp")
-    return gdf_final, df_trips, gdf_overlay
+    distritos_final = load_shp("distritos_final.shp")
+    return gdf_final, df_trips, distritos_final
  
-gdf_final, df_trips, gdf_overlay = carregar_dados()
+gdf_final, df_trips, distritos_final = carregar_dados()
  
  
  
@@ -288,19 +288,20 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ----- MAPAS POR DISTRITO -----
 st.markdown("## Mapas coropléticos por distrito")
  
-gdf_overlay["emissao_nao_eletricos"] = np.where(
-    gdf_overlay["is_eletric"] == False,
-    gdf_overlay["emissao_co"],
+distritos_final["emissao_nao_eletricos"] = np.where(
+    distritos_final["is_eletric"] == False,
+    distritos_final["emissao_co"],
     0
 )
  
-gdf_overlay["emissao_eletricos"] = np.where(
-    gdf_overlay["is_eletric"] == True,
-    gdf_overlay["emissao_co"],
+distritos_final["emissao_eletricos"] = np.where(
+    distritos_final["is_eletric"] == True,
+    distritos_final["emissao_co"],
     0
 )
  
-distritos_final = gdf_overlay.to_crs(epsg=4326)
+distritos_final = distritos_final.set_crs(epsg=31983, allow_override=True)
+distritos_final = distritos_final.to_crs(epsg=4326)
  
 abas = st.tabs([
     "Distância percorrida",
