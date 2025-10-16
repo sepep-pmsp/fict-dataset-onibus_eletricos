@@ -155,8 +155,8 @@ st.markdown('<div class="main-content">', unsafe_allow_html=True)
 def carregar_dados():
     gdf_final = load_csv("gdf_final.csv")
     df_trips = load_csv("df_trips.csv")
-    distritos_final = load_shp("distritos_final.shp")
-    return gdf_final, df_trips, distritos_final
+    gdf_overlay = load_shp("gdf_overlay.shp")
+    return gdf_final, df_trips, gdf_overlay
  
 gdf_final, df_trips, gdf_overlay = carregar_dados()
  
