@@ -5,9 +5,11 @@ import pydeck as pdk
 import time
 import numpy as np
 import streamlit_mermaid as stmd
+import plotly.graph_objects as go
+from scipy.stats import gaussian_kde
 from utils.load_csv import load_csv
 from utils.load_shp import load_shp
- 
+
 
  
 # Layout
@@ -156,9 +158,10 @@ def carregar_dados():
     gdf_final = load_csv("gdf_final.csv")
     df_trips = load_csv("df_trips.csv")
     distritos_final = load_shp("distritos_final.shp")
-    return gdf_final, df_trips, distritos_final
+    df_posicoes = load_csv("df_posicoes_dagster.csv")
+    return gdf_final, df_trips, distritos_final, df_posicoes
  
-gdf_final, df_trips, distritos_final = carregar_dados()
+gdf_final, df_trips, distritos_final, df_posicoes = carregar_dados()
  
  
  
@@ -431,32 +434,32 @@ with st.expander("Clique para simular"):
  
     st.success(f"Com mais **{novos_onibus} ônibus elétricos**, serão evitados, no dia, aproximadamente, "
                f"**{emissao_adicional:,.5f} (t) de CO₂**.")
-    
+   
     st.markdown("<br>", unsafe_allow_html=True)
-
+ 
     st.write("Digite o período da simulação (em dias):")
-
+ 
     dias = st.number_input("",
                            min_value=1,
                            value=30,
                            format="%d")
-
+ 
     df_proj = pd.DataFrame({
         "Dias": range(1, dias + 1),
         "Emissões de CO₂ (t)": [emissao_adicional * d for d in range(1, dias + 1)]
     })
-
+ 
     fig = px.line(df_proj, x="Dias", y="Emissões de CO₂ (t)",
                   title=f"Projeção de emissões evitadas nos próximos {dias} dias",
                   markers=True)
-    
+   
     fig.update_traces(line_color="#00cc96", hovertemplate="Dia: %{x} <br> Emissões: %{y:.5f} (t)<extra></extra>",
                       hoverlabel=dict(font_color="black", bgcolor="white"))
-    
+   
     fig.update_layout(plot_bgcolor="white",
                       xaxis=dict(title_font_color="black", tickfont_color="black"),
                       yaxis=dict(title_font_color="black", tickfont_color="black"))
-    
+   
     st.plotly_chart(fig, use_container_width=True)
 
 
