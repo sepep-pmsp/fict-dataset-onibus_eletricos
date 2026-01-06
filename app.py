@@ -416,7 +416,6 @@ st.markdown("## Simulação de emissões evitadas (Monte Carlo)")
 df_diesel = gdf_final[gdf_final["is_eletrico"] == False].copy()
 
 
-
 def sim_monte_carlo(df_diesel, Y, N=2000, dias=365):
 
     resultados_diarios = []
@@ -436,12 +435,8 @@ def sim_monte_carlo(df_diesel, Y, N=2000, dias=365):
         "Y": Y,
         "dias": dias,
         "impacto_medio_dia": impacto_medio,
-        "IC_inf_dia": np.percentile(resultados_diarios, 2.5),
-        "IC_sup_dia": np.percentile(resultados_diarios, 97.5),
         "impacto_maximo_dia": impacto_maximo,
         "impacto_medio_acumulado": resultados_acumulados.mean(),
-        "IC_inf_acumulado": np.percentile(resultados_acumulados, 2.5),
-        "IC_sup_acumulado": np.percentile(resultados_acumulados, 97.5),
         "resultados_diarios": resultados_diarios,
         "resultados_acumulados": resultados_acumulados
     }
@@ -450,8 +445,8 @@ def estimar_frota_para_meta(
     df_diesel,
     meta_emissao,
     N=2000,
-    Y_min=10,
-    Y_max=500,
+    Y_min=1,
+    Y_max=len(df_diesel),
     passo=10
 ):
 
@@ -524,8 +519,6 @@ with st.expander("Clique para simular"):
             tabela_resumo = pd.DataFrame([{
                 "Quantidade de ônibus elétricos (Y)": Y,
                 "Emissão média evitada (t CO₂/dia)": resultado["impacto_medio_dia"],
-                "IC95% inferior (dia)": resultado["IC_inf_dia"],
-                "IC95% superior (dia)": resultado["IC_sup_dia"],
                 "Cenário máximo (t CO₂/dia)": resultado["impacto_maximo_dia"],
                 "Emissão média acumulada (t CO₂)": resultado["impacto_medio_acumulado"]
             }]).round(5)
