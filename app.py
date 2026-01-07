@@ -410,7 +410,7 @@ st.markdown("<br>", unsafe_allow_html=True)
  
 
 
-# ----- SIMULAÇÃO DE EMISSÕES EVITADAS (MONTE CARLO) -----
+# ----- SIMULAÇÃO DE MONTE CARLO -----
 
 st.markdown("## Simulação de Monte Carlo")
 
@@ -422,8 +422,6 @@ POLUENTES = {
     "emissao_nox": "NOx (t/dia)",
     "emissao_mp": "MP (t/dia)"
 }
-
-PERCENTIL_DECISAO = 75
 
 
 # ======================================================
@@ -448,31 +446,36 @@ def sim_monte_carlo(
     for p in poluentes:
         resultados_diarios[p] = np.array(resultados_diarios[p])
 
+    resultados_acumulados = {
+        p: resultados_diarios[p] * dias
+        for p in poluentes
+    }
+
+    impacto_medio = {
+        p: resultados_diarios[p].mean()
+        for p in poluentes
+    }
+
+    impacto_maximo = {
+        p: sim_dagster.nlargest(Y, p)[p].sum()
+        for p in poluentes
+    }
+
     return {
         "Y": Y,
         "dias": dias,
-        "resultados_diarios": resultados_diarios,
-        "impacto_medio_dia": {
-            p: resultados_diarios[p].mean()
-            for p in poluentes
-        },
-        "impacto_p75_dia": {
-            p: np.percentile(resultados_diarios[p], PERCENTIL_DECISAO)
-            for p in poluentes
-        },
-        "impacto_maximo_dia": {
-            p: sim_dagster.nlargest(Y, p)[p].sum()
-            for p in poluentes
-        },
+        "impacto_medio_dia": impacto_medio,
+        "impacto_maximo_dia": impacto_maximo,
         "impacto_medio_acumulado": {
-            p: resultados_diarios[p].mean() * dias
+            p: resultados_acumulados[p].mean()
             for p in poluentes
-        }
+        },
+        "resultados_diarios": resultados_diarios
     }
 
 
 # ======================================================
-# FUNÇÃO PARA ESTIMAR FROTA NECESSÁRIA (META POR POLUENTE)
+# FUNÇÃO PARA ESTIMAR FROTA NECESSÁRIA
 # ======================================================
 def estimar_frota_para_meta(
     sim_dagster,
@@ -481,7 +484,8 @@ def estimar_frota_para_meta(
     N=2000,
     Y_min=1,
     Y_max=None,
-    passo=1
+    passo=1,
+    percentil=75
 ):
 
     if Y_max is None:
@@ -499,15 +503,18 @@ def estimar_frota_para_meta(
             dias=1
         )
 
-        p75 = sim["impacto_p75_dia"]
+        pctl = {
+            p: np.percentile(sim["resultados_diarios"][p], percentil)
+            for p in poluentes
+        }
 
         resultados.append({
             "Quantidade de ônibus elétricos": Y,
-            **{f"{POLUENTES[p]} (P75)": p75[p] for p in poluentes}
+            **{f"{POLUENTES[p]} (P{percentil})": pctl[p] for p in poluentes}
         })
 
         if all(
-            p75[p] >= metas_por_poluente.get(p, 0)
+            pctl[p] >= metas_por_poluente.get(p, 0)
             for p in poluentes
         ):
             break
@@ -586,10 +593,10 @@ with st.expander("Clique para simular"):
                 ])
 
                 st.success(
-                    f"A frota estimada de **{Y} ônibus elétricos** "
-                    f"atinge as metas diárias de emissões evitadas "
-                    f"({metas_txt}) em pelo menos "
-                    f"**{PERCENTIL_DECISAO}% dos cenários simulados**."
+                    f"Para atingir as metas diárias de emissões evitadas "
+                    f"({metas_txt}), estima-se a necessidade de "
+                    f"**{Y} novos ônibus elétricos**, considerando "
+                    f"75% dos cenários simulados."
                 )
 
                 st.dataframe(df_meta.round(5), use_container_width=True)
@@ -601,6 +608,19 @@ with st.expander("Clique para simular"):
                 dias=dias
             )
 
+            if modo == "Novos ônibus elétricos":
+
+                impacto_txt = ", ".join([
+                    f"**{resultado['impacto_medio_dia'][p]:.4f} t/dia** de {label.split('(')[0].strip()}"
+                    for p, label in POLUENTES.items()
+                ])
+
+                st.success(
+                    f"Com a incorporação de **{Y} novos ônibus elétricos**, "
+                    f"estima-se um impacto médio diário de emissões evitadas de "
+                    f"{impacto_txt}."
+                )
+
             # ----- RESUMO -----
             resumo = {
                 "Quantidade de ônibus elétricos": Y
@@ -608,16 +628,15 @@ with st.expander("Clique para simular"):
 
             for p, label in POLUENTES.items():
                 resumo[f"{label} – média diária"] = resultado["impacto_medio_dia"][p]
-                resumo[f"{label} – P75 diário"] = resultado["impacto_p75_dia"][p]
                 resumo[f"{label} – cenário máximo"] = resultado["impacto_maximo_dia"][p]
-                resumo[f"{label} – acumulado médio no período"] = resultado["impacto_medio_acumulado"][p]
+                resumo[f"{label} – acumulado no período"] = resultado["impacto_medio_acumulado"][p]
 
             tabela_resumo = pd.DataFrame([resumo]).round(5)
 
             st.markdown("### Resumo da simulação")
             st.dataframe(tabela_resumo, use_container_width=True)
 
-            # ----- PROJEÇÃO TEMPORAL (média) -----
+            # ----- PROJEÇÃO TEMPORAL -----
             for p, label in POLUENTES.items():
 
                 df_proj = pd.DataFrame({
@@ -632,7 +651,7 @@ with st.expander("Clique para simular"):
                     df_proj,
                     x="Dias",
                     y="Emissões evitadas (t)",
-                    title=f"Projeção acumulada (média) – {label}",
+                    title=f"Projeção acumulada – {label}",
                     markers=True
                 )
 
@@ -664,12 +683,6 @@ with st.expander("Clique para simular"):
                     x=resultado["impacto_medio_dia"][p],
                     line_dash="dash",
                     annotation_text="Média"
-                )
-
-                fig.add_vline(
-                    x=resultado["impacto_p75_dia"][p],
-                    line_dash="dot",
-                    annotation_text="P75"
                 )
 
                 fig.update_layout(
