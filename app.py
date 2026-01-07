@@ -595,8 +595,8 @@ with st.expander("Clique para simular"):
                 st.success(
                     f"Para atingir as metas diárias de emissões evitadas "
                     f"({metas_txt}), estima-se a necessidade de "
-                    f"**{Y} novos ônibus elétricos**, considerando o "
-                    f"percentil 75 (P75) das simulações."
+                    f"**{Y} novos ônibus elétricos**, considerando "
+                    f"75% dos cenários simulados."
                 )
 
                 st.dataframe(df_meta.round(5), use_container_width=True)
