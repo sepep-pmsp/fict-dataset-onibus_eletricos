@@ -410,7 +410,7 @@ st.markdown("<br>", unsafe_allow_html=True)
  
 
 
-# ----- SIMULAÇÃO DE MONTE CARLO -----
+# ----- SIMULAÇÃO DE EMISSÕES EVITADAS (MONTE CARLO) -----
 
 st.markdown("## Simulação de Monte Carlo")
 
@@ -475,7 +475,7 @@ def sim_monte_carlo(
 
 
 # ======================================================
-# FUNÇÃO PARA ESTIMAR FROTA NECESSÁRIA
+# FUNÇÃO PARA ESTIMAR FROTA NECESSÁRIA (META POR POLUENTE)
 # ======================================================
 def estimar_frota_para_meta(
     sim_dagster,
@@ -595,8 +595,8 @@ with st.expander("Clique para simular"):
                 st.success(
                     f"Para atingir as metas diárias de emissões evitadas "
                     f"({metas_txt}), estima-se a necessidade de "
-                    f"**{Y} novos ônibus elétricos**, considerando "
-                    f"75% dos cenários simulados."
+                    f"**{Y} novos ônibus elétricos**, considerando o "
+                    f"percentil 75 (P75) das simulações."
                 )
 
                 st.dataframe(df_meta.round(5), use_container_width=True)
@@ -608,6 +608,7 @@ with st.expander("Clique para simular"):
                 dias=dias
             )
 
+            # ----- MENSAGEM DE SUCESSO (NOVOS ÔNIBUS ELÉTRICOS) -----
             if modo == "Novos ônibus elétricos":
 
                 impacto_txt = ", ".join([
@@ -628,6 +629,12 @@ with st.expander("Clique para simular"):
 
             for p, label in POLUENTES.items():
                 resumo[f"{label} – média diária"] = resultado["impacto_medio_dia"][p]
+
+                if modo == "Emissões evitadas":
+                    resumo[f"{label} – P75 diário"] = np.percentile(
+                        resultado["resultados_diarios"][p], 75
+                    )
+
                 resumo[f"{label} – cenário máximo"] = resultado["impacto_maximo_dia"][p]
                 resumo[f"{label} – acumulado no período"] = resultado["impacto_medio_acumulado"][p]
 
@@ -684,6 +691,13 @@ with st.expander("Clique para simular"):
                     line_dash="dash",
                     annotation_text="Média"
                 )
+
+                if modo == "Emissões evitadas":
+                    fig.add_vline(
+                        x=np.percentile(resultado["resultados_diarios"][p], 75),
+                        line_dash="dot",
+                        annotation_text="P75"
+                    )
 
                 fig.update_layout(
                     title=f"Distribuição das emissões evitadas – {label}",
