@@ -160,9 +160,12 @@ def carregar_dados():
     distritos_final = load_shp("distritos_final.shp")
     df_posicoes = load_csv("df_posicoes_dagster.csv")
     sim_dagster = load_csv('calculo-emissao-poluentes-diario_2026-01-01_silver.csv')
-    return gdf_final, df_trips, distritos_final, df_posicoes, sim_dagster
+    pop_afetada_onibus = load_csv('pop_afetada_onibus.csv')
+    pop_afetada_linha = load_csv('pop_afetada_linha.csv')
+    gdf = load_shp('pop_afetada_distritos.shp')
+    return gdf_final, df_trips, distritos_final, df_posicoes, sim_dagster, pop_afetada_onibus, pop_afetada_linha, gdf
 
-gdf_final, df_trips, distritos_final, df_posicoes, sim_dagster = carregar_dados()
+gdf_final, df_trips, distritos_final, df_posicoes, sim_dagster, pop_afetada_onibus, pop_afetada_linha, gdf = carregar_dados()
  
  
 # ----- GRÁFICOS 1 -----
@@ -407,7 +410,183 @@ with abas[2]:
  
  
 st.markdown("<br>", unsafe_allow_html=True)
- 
+
+
+
+# --- IMPACTO SAÚDE --- #
+
+st.markdown("## Impacto na saúde da população")
+
+# =========================
+# POPULAÇÃO AFETADA POR ÔNIBUS
+# =========================
+top10_onibus = (
+    pop_afetada_onibus
+    .sort_values("pop_buffer", ascending=False)
+    .head(10)
+)
+
+top10_onibus["onibus_cat"] = top10_onibus["cd_onibus"].astype(str)
+ordem_onibus = top10_onibus["onibus_cat"].tolist()[::-1]
+
+fig_onibus = go.Figure()
+
+fig_onibus.add_bar(
+    x=top10_onibus["pop_buffer"],
+    y=top10_onibus["onibus_cat"],
+    orientation="h",
+    marker=dict(color="#1f77b4"),
+    hovertemplate=(
+        "<b>Ônibus:</b> %{y}<br>"
+        "<b>População:</b> %{x:.0f}<extra></extra>"
+    )
+)
+
+fig_onibus.update_layout(
+    title=dict(
+        text="Top 10 ônibus a diesel com maior população potencialmente afetada",
+        font=dict(size=18, weight="bold", color="black")
+    ),
+    xaxis=dict(
+        title="População potencialmente afetada",
+        tickfont=dict(color="black"),
+        showgrid=True,
+        gridcolor="rgba(0,0,0,0.25)",
+        griddash="dash",
+        range=[0, top10_onibus["pop_buffer"].max() * 1.1]
+    ),
+    yaxis=dict(
+        title="Código do ônibus",
+        tickfont=dict(color="black"),
+        type="category",
+        categoryorder="array",
+        categoryarray=ordem_onibus
+    ),
+    xaxis_title_font=dict(color="black"),
+    yaxis_title_font=dict(color="black"),
+    plot_bgcolor="white",
+    font=dict(size=13, color="black"),
+    bargap=0.25,
+    height=520,
+    margin=dict(l=90, r=60, t=70, b=50)
+)
+
+# =========================
+# POPULAÇÃO AFETADA POR LINHA
+# =========================
+top10_linha = (
+    pop_afetada_linha
+    .sort_values("pop_buffer", ascending=False)
+    .head(10)
+)
+
+top10_linha["linha_cat"] = top10_linha["nm_linha"].astype(str)
+ordem_linha = top10_linha["linha_cat"].tolist()[::-1]
+
+fig_linha = go.Figure()
+
+fig_linha.add_bar(
+    x=top10_linha["pop_buffer"],
+    y=top10_linha["linha_cat"],
+    orientation="h",
+    marker=dict(color="#1f77b4"),
+    hovertemplate=(
+        "<b>Linha:</b> %{y}<br>"
+        "<b>População:</b> %{x:.0f}<extra></extra>"
+    )
+)
+
+fig_linha.update_layout(
+    title=dict(
+        text="Top 10 linhas de ônibus a diesel com maior população potencialmente afetada",
+        font=dict(size=18, weight="bold", color="black")
+    ),
+    xaxis=dict(
+        title="População potencialmente afetada",
+        tickfont=dict(color="black"),
+        showgrid=True,
+        gridcolor="rgba(0,0,0,0.25)",
+        griddash="dash",
+        range=[0, top10_linha["pop_buffer"].max() * 1.1]
+    ),
+    yaxis=dict(
+        title="Linha de ônibus",
+        tickfont=dict(color="black"),
+        type="category",
+        categoryorder="array",
+        categoryarray=ordem_linha
+    ),
+    xaxis_title_font=dict(color="black"),
+    yaxis_title_font=dict(color="black"),
+    plot_bgcolor="white",
+    font=dict(size=13, color="black"),
+    bargap=0.25,
+    height=520,
+    margin=dict(l=120, r=60, t=70, b=50)
+)
+
+# =========================
+# MAPA
+# =========================
+gdf = gdf.set_crs(epsg=31983, allow_override=True)
+gdf = gdf.to_crs(epsg=4326)
+
+fig_mapa_saude = px.choropleth_mapbox(
+    gdf,
+    geojson=gdf.geometry.__geo_interface__,
+    locations=gdf.index,
+    color="pop_buffer",
+    color_continuous_scale="OrRd",
+    range_color=[gdf["pop_buffer"].min(), gdf["pop_buffer"].max()],
+    mapbox_style="carto-positron",
+    center={"lat": -23.7, "lon": -46.63},
+    zoom=9,
+    opacity=0.8,
+    custom_data=["nm_distrit", "pop_buffer"]
+)
+
+fig_mapa_saude.update_traces(
+    hovertemplate=(
+        "<b>Distrito:</b> %{customdata[0]}<br>"
+        "<b>População potencialmente afetada:</b> %{customdata[1]:.0f}"
+        "<extra></extra>"
+    ),
+    hoverlabel=dict(font=dict(color="black"), bgcolor="white")
+)
+
+fig_mapa_saude.update_coloraxes(
+    colorbar=dict(
+        title=dict(
+            text="População potencialmente afetada",
+            side="right",
+            font=dict(color="black")
+        ),
+        tickfont=dict(color="black")
+    )
+)
+
+fig_mapa_saude.update_layout(
+    title=dict(
+        text="População potencialmente afetada por distrito",
+        font=dict(size=18, weight="bold", color="black"),
+        x=0.4
+    ),
+    margin={"r":300, "t":60, "l":300, "b":0},
+    height=650
+)
+
+# =========================
+# LAYOUT
+# =========================
+with st.expander("Clique para as visualizações"):
+    col1, col2 = st.columns(2)
+    col1.plotly_chart(fig_onibus, use_container_width=True)
+    col2.plotly_chart(fig_linha, use_container_width=True)
+
+    st.plotly_chart(fig_mapa_saude, use_container_width=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
 
 
 # ----- SIMULAÇÃO DE EMISSÕES EVITADAS (MONTE CARLO) -----
