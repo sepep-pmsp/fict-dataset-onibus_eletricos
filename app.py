@@ -922,7 +922,7 @@ with col_center:
             get_path="coordinates",
             get_timestamps="timestamps",
             get_color=[255, 0, 0],
-            get_color="color",
+            #get_color="color",
             opacity=0.8,
             width_min_pixels=5,
             rounded=True,
