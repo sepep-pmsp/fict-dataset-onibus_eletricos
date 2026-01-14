@@ -899,42 +899,41 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 
 # ----- MAPA TRAJETOS -----
-#st.markdown("## Mapa de trajeto dos ônibus")
+st.markdown("## Mapa de trajeto dos ônibus")
 
-#df_trips = df_trips[['coordinates', 'timestamps']]
-#df_trips['coordinates'] = df_trips['coordinates'].apply(lambda x: eval(x))
-#df_trips['timestamps'] = df_trips['timestamps'].apply(lambda x: eval(x))
-#df_trips["color"] = df_trips["is_eletrico"].apply(lambda x: [0, 255, 0] if x else [255, 0, 0])
+df_trips = df_trips[['coordinates', 'timestamps']]
+df_trips['coordinates'] = df_trips['coordinates'].apply(lambda x: eval(x))
+df_trips['timestamps'] = df_trips['timestamps'].apply(lambda x: eval(x))
+df_trips["color"] = df_trips["is_eletrico"].apply(lambda x: [0, 255, 0] if x else [255, 0, 0])
  
-#max_time = max(df_trips['timestamps'].apply(max))
-#trail_length = 800
-#time_step = 80
-#frame_delay = 2
+max_time = max(df_trips['timestamps'].apply(max))
+trail_length = 800
+time_step = 80
+frame_delay = 2
  
-#col_left, col_center, col_right = st.columns([1, 5, 1])
-#with col_center:
-    #map_placeholder = st.empty()
-    #current_time = 0
-    #while current_time <= max_time:
-        #trips_layer = pdk.Layer(
-            #"TripsLayer",
-            #data=df_trips,
-            #get_path="coordinates",
-            #get_timestamps="timestamps",
-            #get_color=[255, 0, 0],
-            #get_color="color",
-            #opacity=0.8,
-            #width_min_pixels=5,
-            #rounded=True,
-            #trail_length=trail_length,
-            #current_time=current_time,
-        #)
-        #view_state = pdk.ViewState(latitude=-23.7, longitude=-46.63, zoom=10, pitch=45)
-        #r = pdk.Deck(layers=[trips_layer], initial_view_state=view_state)
-        #map_placeholder.pydeck_chart(r, height=600)
-        #current_time += time_step
-        #time.sleep(frame_delay)
+col_left, col_center, col_right = st.columns([1, 5, 1])
+with col_center:
+    map_placeholder = st.empty()
+    current_time = 0
+    while current_time <= max_time:
+        trips_layer = pdk.Layer(
+            "TripsLayer",
+            data=df_trips,
+            get_path="coordinates",
+            get_timestamps="timestamps",
+            get_color=[255, 0, 0],
+            get_color="color",
+            opacity=0.8,
+            width_min_pixels=5,
+            rounded=True,
+            trail_length=trail_length,
+            current_time=current_time,
+        )
+        view_state = pdk.ViewState(latitude=-23.7, longitude=-46.63, zoom=10, pitch=45)
+        r = pdk.Deck(layers=[trips_layer], initial_view_state=view_state)
+        map_placeholder.pydeck_chart(r, height=600)
+        current_time += time_step
+        time.sleep(frame_delay)
 
 
-
-#st.markdown('</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
