@@ -46,9 +46,9 @@ def setores_censitarios_final():
     print('Inicializando tratamento')
     
     # Coluna de população do setor censitário.
-    setores_censitarios = setores_censitarios.rename(columns={'v0001': 'pop'})
-    setores_censitarios['pop'] = setores_censitarios['pop'].astype(int)
-    setores_censitarios= setores_censitarios.loc[setores_censitarios['pop'] > 0]
+    setores_censitarios = setores_censitarios.rename(columns={'v0001': 'pop_setor'})
+    setores_censitarios['pop_setor'] = setores_censitarios['pop_setor'].astype(int)
+    setores_censitarios= setores_censitarios.loc[setores_censitarios['pop_setor'] > 0]
     
     # Filtro para o município de São Paulo.
     setores_censitarios_sp = setores_censitarios[setores_censitarios['CD_MUN'] == '3550308'].copy()
@@ -76,7 +76,8 @@ def setores_censitarios_final():
         'v0004', 
         'v0005', 
         'v0006', 
-        'v0007'
+        'v0007',
+        'NM_SUBDIST'
     }
     setores_censitarios_sp.drop(columns=drop_cols, inplace=True)
     
