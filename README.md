@@ -9,7 +9,7 @@ Este repositório foi feito com base em:
 2) https://github.com/sepep-pmsp/onibus_eletricos_saude.git
 
 ## OS DADOS
-O dados necessários para rodar os notebooks deste repositório podem ser encontrados neste link: https....
+O dados necessários para rodar os notebooks deste repositório podem ser encontrados neste link: https://cloudprodamazhotmail-my.sharepoint.com/:f:/g/personal/oliviaamann_prefeitura_sp_gov_br/IgAy5CupuJ1vQbjsBfV3offGAaMEtRSfylBJUv_yVwjjErk?e=R0n7g3
 
 1) Realize o download do arquivo data.zip dentro da pasta do repositório clonado.
 2) Descompacte a pasta com os dados.
@@ -26,6 +26,6 @@ Este notebook demonstra como estamos realizando a Simulação de Monte Carlo par
 
 Nosso obetivo é poder criar cenários em tomando por ponto de partida tanto a quantidade de ônibus a diesel a serem substituídos por elétricos, retornando assim quanto de emissão de CO2 seria evitada por dia e por ano; quanto a quantidade de emissão que deve ser evitada, retornando a quantidade de ônibus a serem substituídos necessária para alcança essa meta.
 
-## [SAUDE](SAUDE.ipynb)
+## [SAÚDE](SAUDE.ipynb)
 
 Neste notebook demonstramos como estimamos a quantidade de pessoas afetadas pelos poluentes MP e NOx. Nossa metodologia leva em consideração apenas os moradores da região, por usar os setores censitários.
